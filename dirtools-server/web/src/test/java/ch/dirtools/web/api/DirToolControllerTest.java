@@ -24,8 +24,10 @@
 
 package ch.dirtools.web.api;
 
+import ch.dirtools.common.reply.ComparedStatusReply;
 import ch.platform.common.testing.DatabaseUnitTest;
 import ch.dirtools.domain.model.Item;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +53,8 @@ class DirToolControllerTest extends DatabaseUnitTest {
     private final static String addItemURL = "/item/add";
 
     private final static String getItemURL = "/item/get";
+
+    private final static String compareURL = "/item/compare";
 
     private final String itemName = "file.txt";
 
@@ -186,6 +190,84 @@ class DirToolControllerTest extends DatabaseUnitTest {
         checkGetItemWithIncorrectParam("", itemPath);
         checkGetItemWithIncorrectParam(null, itemPath);
         checkGetItemWithIncorrectParam(itemName, "");
+    }
+
+    private MvcResult sendCompareItem(Item item) throws Exception {
+        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.post(compareURL).contentType(MediaType.APPLICATION_JSON);
+        if (item != null) {
+            requestBuilder.content(asJsonString(item));
+        }
+        return mvc.perform(requestBuilder.accept(MediaType.APPLICATION_JSON)).andReturn();
+    }
+
+    private ComparedStatusReply convertToStatus(String json) throws JsonProcessingException {
+        return new ObjectMapper().readValue(json, ComparedStatusReply.class);
+    }
+
+    @Test
+    public void compare() throws Exception {
+        Item item = createItem(itemName, itemPath, crc32, md5, sha1);
+        sendAddItem(item);
+        Item item2 = createItem(itemName, itemPath, crc32, md5, sha1);
+        MvcResult result = sendCompareItem(item2);
+        int status = result.getResponse().getStatus();
+        assertEquals(OK, status);
+        assertEquals(ComparedStatusReply.Status.OK, convertToStatus(result.getResponse().getContentAsString()).getStatus());
+    }
+
+    @Test
+    public void compareWithModifiedItem() throws Exception {
+        Item item = createItem(itemName, itemPath, crc32, md5, sha1);
+        sendAddItem(item);
+        final String modifiedCrc3 = crc32 + "_";
+        Item item2 = createItem(itemName, itemPath, modifiedCrc3, md5, sha1);
+        MvcResult result = sendCompareItem(item2);
+        int status = result.getResponse().getStatus();
+        assertEquals(OK, status);
+        assertEquals(ComparedStatusReply.Status.MODIFIED, convertToStatus(result.getResponse().getContentAsString()).getStatus());
+    }
+
+    @Test
+    public void compareNotExistItem() throws Exception {
+        Item item = createItem(itemName, itemPath, crc32, md5, sha1);
+        MvcResult result = sendCompareItem(item);
+        int status = result.getResponse().getStatus();
+        assertEquals(NOT_FOUND, status);
+        assertEquals(ComparedStatusReply.Status.NOT_FOUND, convertToStatus(result.getResponse().getContentAsString()).getStatus());
+    }
+
+    private void checkCompareWithIncorrectParam(Item item) throws Exception {
+        MvcResult result = sendCompareItem(item);
+        int status = result.getResponse().getStatus();
+        assertEquals(BAD_REQUEST, status);
+        assertEquals(ComparedStatusReply.Status.PARAM_INCORRECT, convertToStatus(result.getResponse().getContentAsString()).getStatus());
+    }
+
+    @Test
+    public void compareWithIncorrectParam() throws Exception {
+        MvcResult result = sendCompareItem(null);
+        int status = result.getResponse().getStatus();
+        assertEquals(BAD_REQUEST, status);
+        Item item = createItem(null, itemPath, crc32, md5, sha1);
+        checkCompareWithIncorrectParam(item);
+        item = createItem("", itemPath, crc32, md5, sha1);
+        checkCompareWithIncorrectParam(item);
+        item = createItem(itemName, null, crc32, md5, sha1);
+        checkCompareWithIncorrectParam(item);
+        item = createItem(itemName, "", crc32, md5, sha1);
+        checkCompareWithIncorrectParam(item);
+        item = createItem(itemName, itemPath, null, md5, sha1);
+        checkCompareWithIncorrectParam(item);
+        item = createItem(itemName, itemPath, "", md5, sha1);
+        checkCompareWithIncorrectParam(item);
+        item = createItem(itemName, itemPath, crc32, null, sha1);
+        checkCompareWithIncorrectParam(item);
+        item = createItem(itemName, itemPath, crc32, "", sha1);
+        checkCompareWithIncorrectParam(item);
+        item = createItem(itemName, itemPath, crc32, md5, null);
+        checkCompareWithIncorrectParam(item);
+        item = createItem(itemName, itemPath, crc32, md5, "");
+        checkCompareWithIncorrectParam(item);
     }
 
 }

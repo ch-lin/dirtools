@@ -22,25 +22,29 @@
  * THE SOFTWARE.
  *===========================================================================*/
 
-package ch.dirtools.app.service;
+package ch.dirtools.common.reply;
 
-import ch.dirtools.common.exception.ItemExistException;
-import ch.dirtools.common.exception.ItemNotFoundException;
-import ch.dirtools.common.reply.ComparedStatusReply;
-import ch.dirtools.domain.model.Item;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.List;
+import javax.validation.constraints.NotNull;
 
-public interface DirToolService {
+public class ComparedStatusReply {
 
-    void addItem(Item item) throws ItemExistException;
+    public enum Status {
+        OK,
+        NOT_FOUND,
+        MODIFIED,
+        PARAM_INCORRECT
+    }
 
-    Item getItem(String itemName, String itemPath) throws ItemNotFoundException;
+    @Getter
+    @Setter
+    @NotNull
+    private Status status;
 
-    List<Item> getAllItems();
-
-    int cleanup();
-
-    ComparedStatusReply compareItem(Item itemInfo) throws ItemNotFoundException;
+    public ComparedStatusReply() {
+        this.status = Status.OK;
+    }
 
 }
