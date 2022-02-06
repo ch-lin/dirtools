@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ The MIT License (MIT)
+
+ Copyright (c) 2022 Che-Hung Lin
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>ch.dirtools</groupId>
+    <artifactId>dirtools-server</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Dirtools Server</name>
+
+    <properties>
+        <!-- Generic properties -->
+        <java.version>11</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- maven.compiler-->
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+
+        <!-- lombok version-->
+        <lombok.version>1.18.22</lombok.version>
+
+        <platform.version>0.0.1-SNAPSHOT</platform.version>
+    </properties>
+
+    <modules>
+        <module>app</module>
+        <module>common</module>
+        <module>domain</module>
+        <module>web</module>
+    </modules>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.6.2</version>
+    </parent>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>ch.dirtools</groupId>
+                <artifactId>dirtools-app</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.dirtools</groupId>
+                <artifactId>dirtools-domain</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.dirtools</groupId>
+                <artifactId>dirtools-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.dirtools</groupId>
+                <artifactId>dirtools-web</artifactId>
+                <version>${project.version}</version>
+                <type>war</type>
+            </dependency>
+            <dependency>
+                <groupId>ch.platform</groupId>
+                <artifactId>domain</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.platform</groupId>
+                <artifactId>testing</artifactId>
+                <version>${platform.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>ch.platform</groupId>
+            <artifactId>domain</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.platform</groupId>
+            <artifactId>testing</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>2.6.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>TomcatServer</id>
+            <layout>default</layout>
+            <name>releases</name>
+            <url>${project.url}</url>
+        </repository>
+    </distributionManagement>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <release>11</release>
+                    <compilerArgument>-Xlint:all,-processing</compilerArgument>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-ear-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <outputFileNameMapping>@{artifactId}@-@{baseVersion}@@{dashClassifier?}@.@{extension}@
+                    </outputFileNameMapping>
+                    <unpackTypes>rar,war,ejb</unpackTypes>
+                    <version>8</version>
+                    <applicationName>dirtools</applicationName>
+                    <initializeInOrder>true</initializeInOrder>
+                    <displayName>dirtools-ear</displayName>
+                    <defaultLibBundleDir>lib</defaultLibBundleDir>
+                    <skinnyWars>true</skinnyWars>
+                    <filtering>true</filtering>
+                    <modules>
+                        <jarModule>
+                            <unpack>true</unpack>
+                            <groupId>ch.dirtools</groupId>
+                            <artifactId>dirtools-app</artifactId>
+                            <bundleDir>/</bundleDir>
+                            <includeInApplicationXml>true</includeInApplicationXml>
+                        </jarModule>
+                        <jarModule>
+                            <unpack>true</unpack>
+                            <groupId>ch.dirtools</groupId>
+                            <artifactId>dirtools-common</artifactId>
+                            <bundleDir>/</bundleDir>
+                            <includeInApplicationXml>true</includeInApplicationXml>
+                        </jarModule>
+                        <jarModule>
+                            <unpack>true</unpack>
+                            <groupId>ch.dirtools</groupId>
+                            <artifactId>dirtools-domain</artifactId>
+                            <bundleDir>/</bundleDir>
+                            <includeInApplicationXml>true</includeInApplicationXml>
+                        </jarModule>
+                        <jarModule>
+                            <unpack>true</unpack>
+                            <groupId>ch.dirtools</groupId>
+                            <artifactId>dirtools-web</artifactId>
+                            <bundleDir>/</bundleDir>
+                            <includeInApplicationXml>true</includeInApplicationXml>
+                        </jarModule>
+                    </modules>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.7</version>
+                <executions>
+                    <execution>
+                        <id>jacoco-initialize</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>jacoco-check</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule implementation="org.jacoco.maven.RuleConfiguration">
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit implementation="org.jacoco.report.check.Limit">
+                                            <counter>INSTRUCTION</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>jacoco-report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>jacoco-instrument</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>instrument</goal>
+                        </goals>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
