@@ -41,4 +41,6 @@ public interface ItemDao extends BaseDao<Item> {
 
     int cleanup();
 
+    void saveItem(Item item);
+
 }

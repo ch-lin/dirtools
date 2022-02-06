@@ -40,4 +40,6 @@ public interface DirToolService {
 
     int cleanup();
 
+    void updateItem(Item item) throws ItemNotFoundException;
+
 }

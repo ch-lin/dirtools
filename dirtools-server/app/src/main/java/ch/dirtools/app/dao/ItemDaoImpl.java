@@ -71,4 +71,9 @@ public class ItemDaoImpl extends BaseDaoImpl<Item> implements ItemDao {
         return getEntityManager().createQuery("DELETE FROM Item").executeUpdate();
     }
 
+    @Transactional
+    public void saveItem(Item item) {
+        mergeObject(item);
+    }
+
 }
