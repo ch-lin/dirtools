@@ -30,10 +30,7 @@ import ch.dirtools.common.exception.ItemNotFoundException;
 import ch.dirtools.domain.model.Item;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
@@ -74,6 +71,22 @@ public class DirToolController {
             response.setStatus(Response.Status.NOT_FOUND.getStatusCode());
         }
         return null;
+    }
+
+    @PatchMapping(value = "/item/update")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateItem(@RequestBody final Item item, final @Context HttpServletResponse response) {
+        try {
+            dirToolService.updateItem(item);
+        } catch (IllegalArgumentException e) {
+            response.setStatus(Response.Status.BAD_REQUEST.getStatusCode());
+            return Response.status(Response.Status.BAD_REQUEST).entity("Parameters incorrect!").build();
+        } catch (ItemNotFoundException e) {
+            response.setStatus(Response.Status.NOT_FOUND.getStatusCode());
+            return Response.status(Response.Status.NOT_FOUND).entity("Cannot find Item for updating!").build();
+        }
+        return Response.status(Response.Status.OK).entity("OK").build();
     }
 
 }

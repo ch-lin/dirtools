@@ -61,6 +61,17 @@ public class DirToolServiceImpl implements DirToolService {
         return itemDao.cleanup();
     }
 
+    public void updateItem(Item item) throws ItemNotFoundException {
+        if (inValidate(item)) {
+            throw new IllegalArgumentException();
+        }
+        Item itemInDB = getItem(item.getItemName(), item.getItemPath());
+        itemInDB.setCrc32(item.getCrc32());
+        itemInDB.setMd5(item.getMd5());
+        itemInDB.setSha1(item.getSha1());
+        itemDao.saveItem(itemInDB);
+    }
+
     private boolean inValidate(final Item item) {
         return item == null || item.getItemName() == null || item.getItemName().isBlank()
                 || item.getItemPath() == null || item.getItemPath().isBlank()
