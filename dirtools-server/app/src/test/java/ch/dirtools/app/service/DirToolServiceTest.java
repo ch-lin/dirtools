@@ -26,6 +26,7 @@ package ch.dirtools.app.service;
 
 import ch.dirtools.app.dao.ItemDao;
 import ch.dirtools.app.dao.ItemDaoImpl;
+import ch.dirtools.common.reply.ComparedStatusReply;
 import ch.platform.common.testing.DatabaseUnitTest;
 import ch.dirtools.common.exception.ItemExistException;
 import ch.dirtools.common.exception.ItemNotFoundException;
@@ -159,6 +160,33 @@ class DirToolServiceTest extends DatabaseUnitTest {
     }
 
     @Test
+    public void testCompare() throws ItemNotFoundException {
+        final Item itemInfo = createItem(itemName, itemPath, crc32, md5, sha1);
+        assertEquals(ComparedStatusReply.Status.OK, dirToolService.compareItem(itemInfo).getStatus());
+    }
+
+    @Test
+    public void testCompareModifiedItem() throws ItemNotFoundException {
+        final String differentItemSHA1 = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd2";
+        Item itemInfo2 = createItem(itemName, itemPath, crc32, md5, differentItemSHA1);
+        assertEquals(ComparedStatusReply.Status.MODIFIED, dirToolService.compareItem(itemInfo2).getStatus());
+    }
+
+    @Test
+    public void testCompareNonExistItemInfo() {
+        final String differentItemName = itemName + "_";
+        Item itemInfo2 = createItem(differentItemName, itemPath, crc32, md5, sha1);
+        Assertions.assertThrows(ItemNotFoundException.class, () ->
+                dirToolService.compareItem(itemInfo2)
+        );
+    }
+
+    private void checkCompareItemWithIncorrectParam(String itemName, String itemPath, String crc32, String md5, String sha1) {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            Item item = createItem(itemName, itemPath, crc32, md5, sha1);
+            dirToolService.compareItem(item);
+        });
+    }
     public void testUpdateItem() throws ItemNotFoundException {
         final String updatedCrc32 = crc32 + "_";
         final String updatedMd5 = md5 + "_";
@@ -182,6 +210,22 @@ class DirToolServiceTest extends DatabaseUnitTest {
     }
 
     @Test
+    public void testCompareWithIncorrectParam() {
+        Assertions.assertThrows(IllegalArgumentException.class, () ->
+                dirToolService.compareItem(null)
+        );
+        checkCompareItemWithIncorrectParam(null, itemPath, crc32, md5, sha1);
+        checkCompareItemWithIncorrectParam("", itemPath, crc32, md5, sha1);
+        checkCompareItemWithIncorrectParam(itemName, null, crc32, md5, sha1);
+        checkCompareItemWithIncorrectParam(itemName, "", crc32, md5, sha1);
+        checkCompareItemWithIncorrectParam(itemName, itemPath, null, md5, sha1);
+        checkCompareItemWithIncorrectParam(itemName, itemPath, "", md5, sha1);
+        checkCompareItemWithIncorrectParam(itemName, itemPath, crc32, null, sha1);
+        checkCompareItemWithIncorrectParam(itemName, itemPath, crc32, "", sha1);
+        checkCompareItemWithIncorrectParam(itemName, itemPath, crc32, md5, null);
+        checkCompareItemWithIncorrectParam(itemName, itemPath, crc32, md5, "");
+    }
+
     public void testUpdateItemWithIncorrectParam() {
         Assertions.assertThrows(IllegalArgumentException.class, () ->
                 dirToolService.updateItem(null)

@@ -27,7 +27,9 @@ package ch.dirtools.app.service;
 import ch.dirtools.app.dao.ItemDao;
 import ch.dirtools.common.exception.ItemExistException;
 import ch.dirtools.common.exception.ItemNotFoundException;
+import ch.dirtools.common.reply.ComparedStatusReply;
 import ch.dirtools.domain.model.Item;
+import com.google.common.base.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -59,6 +61,18 @@ public class DirToolServiceImpl implements DirToolService {
 
     public int cleanup() {
         return itemDao.cleanup();
+    }
+
+    public ComparedStatusReply compareItem(Item item) throws ItemNotFoundException {
+        if (inValidate(item)) {
+            throw new IllegalArgumentException();
+        }
+        Item item2 = itemDao.getItem(item.getItemName(), item.getItemPath());
+        ComparedStatusReply status = new ComparedStatusReply();
+        if (!Objects.equal(item, item2)) {
+            status.setStatus(ComparedStatusReply.Status.MODIFIED);
+        }
+        return status;
     }
 
     public void updateItem(Item item) throws ItemNotFoundException {

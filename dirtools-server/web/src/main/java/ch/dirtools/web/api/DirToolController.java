@@ -27,6 +27,7 @@ package ch.dirtools.web.api;
 import ch.dirtools.app.service.DirToolService;
 import ch.dirtools.common.exception.ItemExistException;
 import ch.dirtools.common.exception.ItemNotFoundException;
+import ch.dirtools.common.reply.ComparedStatusReply;
 import ch.dirtools.domain.model.Item;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -71,6 +72,25 @@ public class DirToolController {
             response.setStatus(Response.Status.NOT_FOUND.getStatusCode());
         }
         return null;
+    }
+
+    @PostMapping(value = "/item/compare")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ComparedStatusReply compare(@RequestBody final Item itemInfo, final @Context HttpServletResponse response) {
+        try {
+            return dirToolService.compareItem(itemInfo);
+        } catch (IllegalArgumentException e) {
+            response.setStatus(Response.Status.BAD_REQUEST.getStatusCode());
+            ComparedStatusReply status = new ComparedStatusReply();
+            status.setStatus(ComparedStatusReply.Status.PARAM_INCORRECT);
+            return status;
+        } catch (ItemNotFoundException e) {
+            response.setStatus(Response.Status.NOT_FOUND.getStatusCode());
+            ComparedStatusReply status = new ComparedStatusReply();
+            status.setStatus(ComparedStatusReply.Status.NOT_FOUND);
+            return status;
+        }
     }
 
     @PatchMapping(value = "/item/update")
