@@ -56,6 +56,8 @@ class DirToolControllerTest extends DatabaseUnitTest {
 
     private final static String compareURL = "/item/compare";
 
+    private final static String updateItemURL = "/item/update";
+
     private final String itemName = "file.txt";
 
     private final String itemPath = "/Users/user/Desktop/";
@@ -200,6 +202,14 @@ class DirToolControllerTest extends DatabaseUnitTest {
         return mvc.perform(requestBuilder.accept(MediaType.APPLICATION_JSON)).andReturn();
     }
 
+    private MvcResult sendUpdateItem(Item item) throws Exception {
+        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.patch(updateItemURL).contentType(MediaType.APPLICATION_JSON);
+        if (item != null) {
+            requestBuilder.content(asJsonString(item));
+        }
+        return mvc.perform(requestBuilder.accept(MediaType.APPLICATION_JSON)).andReturn();
+    }
+
     private ComparedStatusReply convertToStatus(String json) throws JsonProcessingException {
         return new ObjectMapper().readValue(json, ComparedStatusReply.class);
     }
@@ -268,6 +278,67 @@ class DirToolControllerTest extends DatabaseUnitTest {
         checkCompareWithIncorrectParam(item);
         item = createItem(itemName, itemPath, crc32, md5, "");
         checkCompareWithIncorrectParam(item);
+    }
+
+    @Test
+    public void updateItem() throws Exception {
+        Item item = createItem(itemName, itemPath, crc32, md5, sha1);
+        sendAddItem(item);
+        final String updatedCrc32 = md5 + "_";
+        final String updatedMd5 = md5 + "_";
+        final String updatedSha1 = md5 + "_";
+        Item updatedItem = createItem(itemName, itemPath, updatedCrc32, updatedMd5, updatedSha1);
+        MvcResult result = sendUpdateItem(updatedItem);
+        int status = result.getResponse().getStatus();
+        assertEquals(OK, status);
+        result = sendGetItem(itemName, itemPath);
+        status = result.getResponse().getStatus();
+        assertEquals(OK, status);
+        Item itemResult = new ObjectMapper().readValue(result.getResponse().getContentAsString(), Item.class);
+        assertEquals(itemName, itemResult.getItemName());
+        assertEquals(itemPath, itemResult.getItemPath());
+        assertEquals(updatedCrc32, itemResult.getCrc32());
+        assertEquals(updatedMd5, itemResult.getMd5());
+        assertEquals(updatedSha1, itemResult.getSha1());
+    }
+
+    @Test
+    public void updateNotExistItem() throws Exception {
+        Item item = createItem(itemName, itemPath, crc32, md5, sha1);
+        MvcResult result = sendUpdateItem(item);
+        int status = result.getResponse().getStatus();
+        assertEquals(NOT_FOUND, status);
+    }
+
+    private void checkUpdateItemWithIncorrectParam(Item item) throws Exception {
+        MvcResult result = sendUpdateItem(item);
+        int status = result.getResponse().getStatus();
+        assertEquals(BAD_REQUEST, status);
+    }
+
+    @Test
+    public void updateItemWithIncorrectParam() throws Exception {
+        checkUpdateItemWithIncorrectParam(null);
+        Item item = createItem(null, itemPath, crc32, md5, sha1);
+        checkUpdateItemWithIncorrectParam(item);
+        item = createItem("", itemPath, crc32, md5, sha1);
+        checkUpdateItemWithIncorrectParam(item);
+        item = createItem(itemName, null, crc32, md5, sha1);
+        checkUpdateItemWithIncorrectParam(item);
+        item = createItem(itemName, "", crc32, md5, sha1);
+        checkUpdateItemWithIncorrectParam(item);
+        item = createItem(itemName, itemPath, null, md5, sha1);
+        checkUpdateItemWithIncorrectParam(item);
+        item = createItem(itemName, itemPath, "", md5, sha1);
+        checkUpdateItemWithIncorrectParam(item);
+        item = createItem(itemName, itemPath, crc32, null, sha1);
+        checkUpdateItemWithIncorrectParam(item);
+        item = createItem(itemName, itemPath, crc32, "", sha1);
+        checkUpdateItemWithIncorrectParam(item);
+        item = createItem(itemName, itemPath, crc32, md5, null);
+        checkUpdateItemWithIncorrectParam(item);
+        item = createItem(itemName, itemPath, crc32, md5, "");
+        checkUpdateItemWithIncorrectParam(item);
     }
 
 }

@@ -43,4 +43,6 @@ public interface DirToolService {
 
     ComparedStatusReply compareItem(Item itemInfo) throws ItemNotFoundException;
 
+    void updateItem(Item item) throws ItemNotFoundException;
+
 }
