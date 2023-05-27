@@ -160,6 +160,58 @@ class DirToolServiceTest extends DatabaseUnitTest {
     }
 
     @Test
+    public void testUpdateItem() throws ItemNotFoundException {
+        final String updatedCrc32 = crc32 + "_";
+        final String updatedMd5 = md5 + "_";
+        final String updatedSha1 = sha1 + "_";
+        Item item = createItem(itemName, itemPath, updatedCrc32, updatedMd5, updatedSha1);
+        dirToolService.updateItem(item);
+        Item result = dirToolService.getItem(itemName, itemPath);
+        assertNotNull(result);
+        assertEquals(itemName, result.getItemName());
+        assertEquals(itemPath, result.getItemPath());
+        assertEquals(updatedCrc32, result.getCrc32());
+        assertEquals(updatedMd5, result.getMd5());
+        assertEquals(updatedSha1, result.getSha1());
+    }
+
+    private void checkUpdateItemWithIncorrectParam(String itemName, String itemPath, String crc32, String md5, String sha1) {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            Item item = createItem(itemName, itemPath, crc32, md5, sha1);
+            dirToolService.updateItem(item);
+        });
+    }
+
+    @Test
+    public void testUpdateItemWithIncorrectParam() {
+        Assertions.assertThrows(IllegalArgumentException.class, () ->
+                dirToolService.updateItem(null)
+        );
+        checkUpdateItemWithIncorrectParam(null, itemPath, crc32, md5, sha1);
+        checkUpdateItemWithIncorrectParam("", itemPath, crc32, md5, sha1);
+        checkUpdateItemWithIncorrectParam(itemName, null, crc32, md5, sha1);
+        checkUpdateItemWithIncorrectParam(itemName, "", crc32, md5, sha1);
+        checkUpdateItemWithIncorrectParam(itemName, itemPath, null, md5, sha1);
+        checkUpdateItemWithIncorrectParam(itemName, itemPath, "", md5, sha1);
+        checkUpdateItemWithIncorrectParam(itemName, itemPath, crc32, null, sha1);
+        checkUpdateItemWithIncorrectParam(itemName, itemPath, crc32, "", sha1);
+        checkUpdateItemWithIncorrectParam(itemName, itemPath, crc32, md5, null);
+        checkUpdateItemWithIncorrectParam(itemName, itemPath, crc32, md5, "");
+    }
+
+    @Test
+    public void testUpdateNotExistItem() {
+        final String itemPath = this.itemPath + "_";
+        final String updatedCrc32 = crc32 + "_";
+        final String updatedMd5 = md5 + "_";
+        final String updatedSha1 = sha1 + "_";
+        Item item = createItem(itemName, itemPath, updatedCrc32, updatedMd5, updatedSha1);
+        Assertions.assertThrows(ItemNotFoundException.class, () ->
+                dirToolService.updateItem(item)
+        );
+    }
+
+    @Test
     public void testCompare() throws ItemNotFoundException {
         final Item itemInfo = createItem(itemName, itemPath, crc32, md5, sha1);
         assertEquals(ComparedStatusReply.Status.OK, dirToolService.compareItem(itemInfo).getStatus());
@@ -187,27 +239,6 @@ class DirToolServiceTest extends DatabaseUnitTest {
             dirToolService.compareItem(item);
         });
     }
-    public void testUpdateItem() throws ItemNotFoundException {
-        final String updatedCrc32 = crc32 + "_";
-        final String updatedMd5 = md5 + "_";
-        final String updatedSha1 = sha1 + "_";
-        Item item = createItem(itemName, itemPath, updatedCrc32, updatedMd5, updatedSha1);
-        dirToolService.updateItem(item);
-        Item result = dirToolService.getItem(itemName, itemPath);
-        assertNotNull(result);
-        assertEquals(itemName, result.getItemName());
-        assertEquals(itemPath, result.getItemPath());
-        assertEquals(updatedCrc32, result.getCrc32());
-        assertEquals(updatedMd5, result.getMd5());
-        assertEquals(updatedSha1, result.getSha1());
-    }
-
-    private void checkUpdateItemWithIncorrectParam(String itemName, String itemPath, String crc32, String md5, String sha1) {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
-            Item item = createItem(itemName, itemPath, crc32, md5, sha1);
-            dirToolService.updateItem(item);
-        });
-    }
 
     @Test
     public void testCompareWithIncorrectParam() {
@@ -224,34 +255,6 @@ class DirToolServiceTest extends DatabaseUnitTest {
         checkCompareItemWithIncorrectParam(itemName, itemPath, crc32, "", sha1);
         checkCompareItemWithIncorrectParam(itemName, itemPath, crc32, md5, null);
         checkCompareItemWithIncorrectParam(itemName, itemPath, crc32, md5, "");
-    }
-
-    public void testUpdateItemWithIncorrectParam() {
-        Assertions.assertThrows(IllegalArgumentException.class, () ->
-                dirToolService.updateItem(null)
-        );
-        checkUpdateItemWithIncorrectParam(null, itemPath, crc32, md5, sha1);
-        checkUpdateItemWithIncorrectParam("", itemPath, crc32, md5, sha1);
-        checkUpdateItemWithIncorrectParam(itemName, null, crc32, md5, sha1);
-        checkUpdateItemWithIncorrectParam(itemName, "", crc32, md5, sha1);
-        checkUpdateItemWithIncorrectParam(itemName, itemPath, null, md5, sha1);
-        checkUpdateItemWithIncorrectParam(itemName, itemPath, "", md5, sha1);
-        checkUpdateItemWithIncorrectParam(itemName, itemPath, crc32, null, sha1);
-        checkUpdateItemWithIncorrectParam(itemName, itemPath, crc32, "", sha1);
-        checkUpdateItemWithIncorrectParam(itemName, itemPath, crc32, md5, null);
-        checkUpdateItemWithIncorrectParam(itemName, itemPath, crc32, md5, "");
-    }
-
-    @Test
-    public void testUpdateNotExistItem() {
-        final String itemPath = this.itemPath + "_";
-        final String updatedCrc32 = crc32 + "_";
-        final String updatedMd5 = md5 + "_";
-        final String updatedSha1 = sha1 + "_";
-        Item item = createItem(itemName, itemPath, updatedCrc32, updatedMd5, updatedSha1);
-        Assertions.assertThrows(ItemNotFoundException.class, () ->
-                dirToolService.updateItem(item)
-        );
     }
 
 }
