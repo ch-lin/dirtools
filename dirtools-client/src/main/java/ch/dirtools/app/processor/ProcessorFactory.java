@@ -1,4 +1,4 @@
-package ch.dirtools.app.connector;
+package ch.dirtools.app.processor;
 
 import ch.dirtools.app.connector.digest.CRC32Processor;
 import ch.dirtools.app.connector.digest.MD5Processor;

@@ -14,4 +14,8 @@ public class Data {
         details.put(key, value);
     }
 
+    public byte[] getData(String key) {
+        return (byte[]) details.get(key);
+    }
+
 }
